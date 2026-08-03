@@ -1,0 +1,34 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+// Represents the user who logged in via Clerk
+model User {
+  id              String   @id // Clerk User ID
+  email           String   @unique
+  credits         Int      @default(10) // Users get 3 free generations upon signup
+  masterResumeUrl String?    // Stores the cloud URL of their base PDF
+  resumes         Resume[]
+  createdAt       DateTime @default(now())
+}
+
+// Represents a saved ATS Resume
+model Resume {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetRole  String   // e.g., "Senior UI/UX Designer"
+  jsonData    String   // The stringified JSON data from Llama-3
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
